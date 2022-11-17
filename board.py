@@ -105,8 +105,9 @@ def dfs(x, y, i, w, ans = []):
             continue
         tmp = board[y][x]
         ans += [[x*40,y*40]]
-        # board[y][x] = '#'
+        board[y][x] = '#'
         if dfs(x+xm, y+ym, i+1, w):
+            board[y][x] = tmp
             return ans
         board[y][x] = tmp
         ans.pop(-1)

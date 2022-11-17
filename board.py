@@ -80,12 +80,67 @@ def display_words():
         y+=33
 
 
+def search_btn():
+    x = 625
+    y = 500
+    pygame.draw.rect(screen,"green",(x,y,250,40),0)
+    title_words_format=pygame.font.Font("freesansbold.ttf", 25)
+    title_words=title_words_format.render("Search",True,(255,0,255))
+    screen.blit(title_words,(x + 5,y + 7.5))
+
+
+def dfs(x, y, i, w, ans = []):
+    board = generate.grid
+    if i == len(w):
+        ans += [[x*40,y*40]]
+        return True
+
+    movements = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+    for xm, ym in movements:
+        if len(board[0]) <= x+xm or x+xm < 0:
+            continue
+        if len(board) <= y+ym or y+ym < 0:
+            continue
+        if board[y+ym][x+xm] != w[i]:
+            continue
+        tmp = board[y][x]
+        ans += [[x*40,y*40]]
+        # board[y][x] = '#'
+        if dfs(x+xm, y+ym, i+1, w):
+            return ans
+        board[y][x] = tmp
+        ans.pop(-1)
+    return False
+
+def exist(w):
+    board = generate.grid
+    print(w)
+    ans = []
+    for i in range(len(board)):
+            for j in range(len(board[i])):
+                if board[i][j] != w[0]:
+                    continue
+                ans = dfs(j, i, 1, w)
+                if ans:
+                    return ans
+    return False
+
+
 drag=False
 guessed=[]
 word=""
 running=True
 guessed_indexes=[]
 words_to_guess=refine_list(generate.words_copy[::])
+
+def corrected(idx,w):
+    if remove_duplicate(w) in words_to_guess:
+            selected+=(idx)
+            index=words_to_guess.index(remove_duplicate(word))
+            words_to_guess.remove(remove_duplicate(word))
+            generate.words_copy.pop(index)
+
+
 while(running):
     
     screen.fill((255,255,255))
@@ -93,6 +148,7 @@ while(running):
     display_board()
     display_words()
     print_search()
+    search_btn()
     game_over_screen(screen,words_to_guess)
 
     for event in pygame.event.get():
@@ -104,6 +160,18 @@ while(running):
                 x, y = pygame.mouse.get_pos()
                 if x<=600:
                     word+=generate.grid[(y//40%600)][(x//40)%600]
+                elif x >= 625 and y <= 540 and y >= 500 and len(generate.words_copy):
+                    # print(exist(words_to_guess[searched_word]))
+                    sel_word = generate.words_copy[0]
+                    ans = exist(sel_word)
+                    
+                    if (ans):
+                        if remove_duplicate(sel_word) in words_to_guess:
+                            selected+=ans
+                            index=words_to_guess.index(remove_duplicate(sel_word))
+                            words_to_guess.remove(remove_duplicate(sel_word))
+                            generate.words_copy.pop(index)
+
             if event.type==pygame.MOUSEMOTION and drag:
                 x, y = pygame.mouse.get_pos()
                 if x<=600:
